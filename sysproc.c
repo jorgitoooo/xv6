@@ -14,16 +14,34 @@ sys_fork(void)
 }
 
 int
-sys_exit(void)
+sys_exit(void) // CS153, Lab 1, a
 {
-  exit();
+  int status = 0;
+  if(argint(0, &status) < 0)
+    return -1;
+
+  exit(status);
   return 0;  // not reached
 }
 
 int
-sys_wait(void)
+sys_wait(void) // CS153, Lab 1, b
 {
-  return wait();
+  int * status;
+  if(argptr(0,(char**) &status, sizeof(status)) < 0)
+    return -1;
+
+  return wait(status);
+}
+
+int
+sys_waitpid(void) // CS153, Lab 1, c
+{
+  int pid, *status, options;
+  if(argint(0, &pid) < 0 || argptr(1, (char**)(&status), sizeof(status)) < 0 || argint(2, &options) < 0)
+    return -1;
+
+  return waitpid(pid, status, options);
 }
 
 int
@@ -33,6 +51,7 @@ sys_kill(void)
 
   if(argint(0, &pid) < 0)
     return -1;
+
   return kill(pid);
 }
 
@@ -88,4 +107,11 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+int
+sys_hello(void)
+{
+  cprintf("Hello from Kernel space!\n");
+  return 0;
 }

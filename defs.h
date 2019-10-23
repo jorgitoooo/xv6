@@ -104,7 +104,7 @@ int             pipewrite(struct pipe*, char*, int);
 //PAGEBREAK: 16
 // proc.c
 int             cpuid(void);
-void            exit(void);
+void            exit(int); // CS153, Lab 1, a
 int             fork(void);
 int             growproc(int);
 int             kill(int);
@@ -117,7 +117,8 @@ void            sched(void);
 void            setproc(struct proc*);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
-int             wait(void);
+int             wait(int*); // CS153, Lab 1, b
+int             waitpid(int,int*,int); // CS153, Lab 1, c
 void            wakeup(void*);
 void            yield(void);
 

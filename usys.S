@@ -11,6 +11,7 @@
 SYSCALL(fork)
 SYSCALL(exit)
 SYSCALL(wait)
+SYSCALL(waitpid) #CS153, Lab 1, c
 SYSCALL(pipe)
 SYSCALL(read)
 SYSCALL(write)
@@ -29,3 +30,4 @@ SYSCALL(getpid)
 SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
+SYSCALL(hello)

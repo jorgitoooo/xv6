@@ -8,8 +8,9 @@
 
 .globl swtch
 swtch:
-  movl 4(%esp), %eax
-  movl 8(%esp), %edx
+  # swtch parametes
+  movl 4(%esp), %eax # eax now contains address of old context
+  movl 8(%esp), %edx # edx now contains address of new context
 
   # Save old callee-saved registers
   pushl %ebp
@@ -18,8 +19,8 @@ swtch:
   pushl %edi
 
   # Switch stacks
-  movl %esp, (%eax)
-  movl %edx, %esp
+  movl %esp, (%eax) # top of stack is saved into the old context
+  movl %edx, %esp   # top of stack points to new context
 
   # Load new callee-saved registers
   popl %edi

@@ -225,7 +225,7 @@ fork(void)
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
 void
-exit(void)
+exit(int status) // CS153, Lab 1, a
 {
   struct proc *curproc = myproc();
   struct proc *p;
@@ -260,6 +260,8 @@ exit(void)
         wakeup1(initproc);
     }
   }
+  // CS153, Lab 1, a
+  curproc->exit_status = status;
 
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
@@ -270,7 +272,7 @@ exit(void)
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
 int
-wait(void)
+wait(int *status) // CS153, Lab 1, b
 {
   struct proc *p;
   int havekids, pid;
@@ -281,6 +283,7 @@ wait(void)
     // Scan through table looking for exited children.
     havekids = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      // Current proc in ptable is not child so ignore
       if(p->parent != curproc)
         continue;
       havekids = 1;
@@ -295,13 +298,72 @@ wait(void)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        release(&ptable.lock);
-        return pid;
+
+	// CS153, Lab 1, b
+	if(status)
+	  *status = p->exit_status;
+	p->exit_status = 0;
+
+	release(&ptable.lock);
+	return pid;
       }
     }
 
     // No point waiting if we don't have any children.
     if(!havekids || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
+int
+waitpid(int pid, int *status, int options) // CS153, Lab 1, c
+{
+  struct proc *p;
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for exited procs.
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == pid) { 
+        if(p->state == ZOMBIE){
+          // Found one.
+          pid = p->pid;
+          kfree(p->kstack);
+          p->kstack = 0;
+          freevm(p->pgdir);
+          p->pid = 0;
+          p->parent = 0;
+          p->name[0] = 0;
+          p->killed = 0;
+          p->state = UNUSED;
+
+	  // CS153, Lab 1, c
+	  if(status)
+	    *status = p->exit_status;
+	  p->exit_status = 0;
+
+	  release(&ptable.lock);
+	  return pid;
+        }
+	else if(options & WNOHANG) { // CS153, Lab 1, e
+	  if(p->exit_status != -1) {
+      	    release(&ptable.lock);
+	    return p->exit_status;
+	  }
+	  else
+	    return -1;
+	}
+      }
+    }
+
+    // No point waiting if we don't have any procs.
+    if(curproc->killed){
       release(&ptable.lock);
       return -1;
     }
