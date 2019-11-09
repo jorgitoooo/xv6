@@ -4,13 +4,10 @@ struct rtcdate;
 // system calls
 int fork(void);
 
-// CS153, Lab 1, a
-void  exit(int status) __attribute__((noreturn));
-// CS153, Lab 1, b
-int wait(int*);
-// CS153, Lab 1, c
-int waitpid(int,int*,int);
 
+void  exit(int status) __attribute__((noreturn)); // CS153, Lab 1, a
+int wait(int*); // CS153, Lab 1, b
+int waitpid(int,int*,int); // CS153, Lab 1, c
 int pipe(int*);
 int write(int, const void*, int);
 int read(int, void*, int);
@@ -30,6 +27,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int hello(void);
+int setpriority(int); // CS153, Lab 2
+int getpriority(void); // CS153, Lab 2 bonus
 
 // ulib.c
 int stat(const char*, struct stat*);

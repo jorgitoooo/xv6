@@ -115,3 +115,20 @@ sys_hello(void)
   cprintf("Hello from Kernel space!\n");
   return 0;
 }
+
+// CS153, Lab 2, bonus 2 (Priority inheritance)
+int
+sys_getpriority(void)
+{
+	return getpriority();
+}
+
+// Lab 2
+int 
+sys_setpriority(void)
+{
+	int priority;
+	if(argint(0, &priority) < 0)
+		return -1;
+	return setpriority(priority);
+}

@@ -52,6 +52,9 @@ struct proc {
   
   // CS153, Lab 1, a
   int exit_status;             // Process exit status
+
+  // CS153, Lab 2
+	int priority;								 // Process' priority
 };
 
 // Process memory is laid out contiguously, low addresses first:

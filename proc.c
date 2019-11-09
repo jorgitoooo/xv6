@@ -88,6 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+	p->priority = INIT_PRIORITY; // CS153, Lab 2
 
   release(&ptable.lock);
 
@@ -215,6 +216,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+	np->priority = curproc->priority; // CS153, Lab 2 bonus 2 (priority inheritance)
 
   release(&ptable.lock);
 
@@ -278,6 +280,8 @@ wait(int *status) // CS153, Lab 1, b
   int havekids, pid;
   struct proc *curproc = myproc();
   
+	if(curproc->priority > 0) curproc->priority--; // CS153, Lab 2, bonus 1 (Priority aging)
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -299,13 +303,13 @@ wait(int *status) // CS153, Lab 1, b
         p->killed = 0;
         p->state = UNUSED;
 
-	// CS153, Lab 1, b
-	if(status)
-	  *status = p->exit_status;
-	p->exit_status = 0;
+				// CS153, Lab 1, b
+				if(status)
+	  			*status = p->exit_status;
+				p->exit_status = 0;
 
-	release(&ptable.lock);
-	return pid;
+				release(&ptable.lock);
+				return pid;
       }
     }
 
@@ -373,6 +377,28 @@ waitpid(int pid, int *status, int options) // CS153, Lab 1, c
   }
 }
 
+// CS153, Lab 2, bonus 2 (Priority inheritance)
+int
+getpriority(void)
+{
+	return myproc()->priority;
+}
+
+// CS153, Lab 2, bonus 2 (Priority inheritance)
+int
+setpriority(int priority)
+{
+	struct proc *curproc = myproc();
+	if(priority > 31 || priority < 0)
+		return -1;
+	
+	acquire(&ptable.lock);
+	curproc->priority = priority;
+	release(&ptable.lock);
+	
+	return 0;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -384,7 +410,8 @@ waitpid(int pid, int *status, int options) // CS153, Lab 1, c
 void
 scheduler(void)
 {
-  struct proc *p;
+
+  struct proc *p, *p2;
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -392,10 +419,19 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
+		int low_priority = LOWEST_PRIORITY; // CS153, Lab 2
+    
+		// Loop over process table looking for process to run.
     acquire(&ptable.lock);
+		for(p2 = ptable.proc; p2 < &ptable.proc[NPROC]; p2++){ // CS153, Lab 2
+			if(p2->state != RUNNABLE || p2->priority > low_priority)
+				continue;
+
+			low_priority = p2->priority;
+		}
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
+      if(p->state != RUNNABLE || p->priority > low_priority) // CS153, Lab 2
         continue;
 
       // Switch to chosen process.  It is the process's job
@@ -404,7 +440,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+			
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -413,7 +449,6 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
-
   }
 }
 

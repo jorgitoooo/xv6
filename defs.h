@@ -119,6 +119,8 @@ void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(int*); // CS153, Lab 1, b
 int             waitpid(int,int*,int); // CS153, Lab 1, c
+int             setpriority(int); // CS153, Lab 2
+int             getpriority(void); // CS153, Lab 2 bonus
 void            wakeup(void*);
 void            yield(void);
 

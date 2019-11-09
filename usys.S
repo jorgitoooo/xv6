@@ -31,3 +31,5 @@ SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(hello)
+SYSCALL(setpriority) #CS153, Lab 2
+SYSCALL(getpriority) #CS153, Lab 2 bonus
