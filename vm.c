@@ -39,7 +39,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
   pte_t *pgtab;
 
   pde = &pgdir[PDX(va)];
-  if(*pde & PTE_P){
+  if(*pde & PTE_P){ // PTE
     pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
   } else {
     if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
@@ -226,10 +226,17 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
   if(newsz >= KERNBASE)
     return 0;
+//  if(newsz >= oldsz)
   if(newsz < oldsz)
     return oldsz;
+/*
+  a = PGROUNDDOWN(oldsz);
+	if(newsz >= a)
+		return newsz;
+*/
 
   a = PGROUNDUP(oldsz);
+//  for(; a > newsz; a -= PGSIZE){
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
