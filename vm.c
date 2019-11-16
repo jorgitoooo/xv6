@@ -226,17 +226,10 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
   if(newsz >= KERNBASE)
     return 0;
-//  if(newsz >= oldsz)
   if(newsz < oldsz)
     return oldsz;
-/*
-  a = PGROUNDDOWN(oldsz);
-	if(newsz >= a)
-		return newsz;
-*/
 
   a = PGROUNDUP(oldsz);
-//  for(; a > newsz; a -= PGSIZE){
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
@@ -329,6 +322,8 @@ copyuvm(pde_t *pgdir, uint sz)
 
   if((d = setupkvm()) == 0)
     return 0;
+
+	// Copy over CODE & STATIC DATA
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
@@ -344,6 +339,25 @@ copyuvm(pde_t *pgdir, uint sz)
       goto bad;
     }
   }
+
+	// CS 153, Lab 3
+	// Copy over STACK
+  for(i = (KERNBASE - PGSIZE); i < KERNBASE; i += PGSIZE){
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+      kfree(mem);
+      goto bad;
+    }
+	}
+
   return d;
 
 bad:
