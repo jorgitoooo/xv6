@@ -342,7 +342,7 @@ copyuvm(pde_t *pgdir, uint sz)
 
 	// CS 153, Lab 3
 	// Copy over STACK
-  for(i = (KERNBASE - PGSIZE); i < KERNBASE; i += PGSIZE){
+  for(i = (KERNBASE - 2*PGSIZE); i < KERNBASE; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
