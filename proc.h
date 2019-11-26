@@ -55,6 +55,9 @@ struct proc {
 
   // CS153, Lab 2
 	int priority;								 // Process' priority
+
+	// CS153, Lab 3
+	uint lb_stk_addr;				     // Maintains lower bound address of stack
 };
 
 // Process memory is laid out contiguously, low addresses first:

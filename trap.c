@@ -77,7 +77,22 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+	case T_PGFLT:
+		if(myproc()->lb_stk_addr > rcr2()) {
+			// Grows by 1 PGSIZE for stack and 1 PGSIZE as protective padding
+			uint new_lb_addr = myproc()->lb_stk_addr - 2*PGSIZE;
+			uint old_lb_addr = myproc()->lb_stk_addr - PGSIZE;
 
+			if((allocuvm(myproc()->pgdir, new_lb_addr, old_lb_addr) == 0) || new_lb_addr < myproc()->sz){
+				cprintf("COULDN'T ALLOCATE NEW MEMORY!!!\n");
+    		myproc()->killed = 1;
+			 } else {
+				// Stack grew by a PGSIZE
+				cprintf("ALLOCATED NEW MEMORY!!!!\n");
+				myproc()->lb_stk_addr -= PGSIZE;
+			 }
+		}
+		break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){

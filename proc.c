@@ -89,6 +89,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 	p->priority = INIT_PRIORITY; // CS153, Lab 2
+	p->lb_stk_addr = KERNBASE - PGSIZE; // CS153, Lab 3
 
   release(&ptable.lock);
 
