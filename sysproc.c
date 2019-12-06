@@ -8,6 +8,7 @@
 #include "proc.h"
 
 int sys_shm_open(void) {
+	cprintf("sys_shm_open\n");
   int id;
   char **pointer;
 
@@ -20,6 +21,7 @@ int sys_shm_open(void) {
 }
 
 int sys_shm_close(void) {
+	cprintf("sys_shm_close\n");
   int id;
 
   if(argint(0, &id) < 0)
