@@ -5,7 +5,6 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
-//#include "proc.c" // CS153, Lab 4
 #include "spinlock.h"
 
 struct {
